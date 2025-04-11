@@ -1,6 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+
+const API_BASE = "https://wishlist-backend-wlvx.onrender.com";
 
 const categories = [
   { name: "Casa", color: "#f87171" },
@@ -11,38 +12,61 @@ const categories = [
 
 export default function App() {
   const [items, setItems] = useState([]);
-  const [form, setForm] = useState({ url: "", category: "Casa" });
+  const [form, setForm] = useState({ url: "", category: "Casa", price: "" });
+
+  const fetchItems = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/items`);
+      setItems(res.data);
+    } catch (err) {
+      console.error("Errore caricamento dati:", err.message);
+    }
+  };
 
   useEffect(() => {
-    axios.get("https://wishlist-tracker-backend-wlvx.onrender.com/api/items").then((res) => {
-      setItems(res.data);
-    });
+    fetchItems();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await axios.post("https://wishlist-backend-wlvx.onrender.com/api/items", form);
-    setItems([...items, res.data]);
-    setForm({ url: "", category: "Casa" });
+    try {
+      const res = await axios.post(`${API_BASE}/api/items`, {
+        url: form.url,
+        category: form.category,
+        price: parseFloat(form.price)
+      });
+      setItems([...items, res.data]);
+      setForm({ url: "", category: "Casa", price: "" });
+    } catch (err) {
+      console.error("Errore invio:", err.message);
+    }
   };
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">🎯 Wishlist Tracker</h1>
 
-      <form onSubmit={handleSubmit} className="mb-6">
+      <form onSubmit={handleSubmit} className="mb-6 flex flex-wrap gap-2">
         <input
           type="text"
           placeholder="Incolla il link dell'articolo"
           value={form.url}
           onChange={(e) => setForm({ ...form, url: e.target.value })}
-          className="border px-2 py-1 mr-2 w-2/3"
+          className="border px-2 py-1 flex-grow min-w-[200px]"
+          required
+        />
+        <input
+          type="number"
+          placeholder="Prezzo"
+          value={form.price}
+          onChange={(e) => setForm({ ...form, price: e.target.value })}
+          className="border px-2 py-1 w-24"
           required
         />
         <select
           value={form.category}
           onChange={(e) => setForm({ ...form, category: e.target.value })}
-          className="border px-2 py-1 mr-2"
+          className="border px-2 py-1"
         >
           {categories.map((cat) => (
             <option key={cat.name} value={cat.name}>{cat.name}</option>
@@ -68,7 +92,10 @@ export default function App() {
                 <td className="p-2">{item.name}</td>
                 <td className="p-2">€{item.price}</td>
                 <td className="p-2">
-                  <span className="px-2 py-1 rounded text-white" style={{ backgroundColor: cat?.color || "gray" }}>
+                  <span
+                    className="px-2 py-1 rounded text-white"
+                    style={{ backgroundColor: cat?.color || "gray" }}
+                  >
                     {item.category}
                   </span>
                 </td>
