@@ -14,14 +14,14 @@ export default function App() {
   const [form, setForm] = useState({ url: "", category: "Casa" });
 
   useEffect(() => {
-    axios.get("https://wishlist-tracker-backend.onrender.com/api/items").then((res) => {
+    axios.get("https://wishlist-tracker-backend-wlvx.onrender.com/api/items").then((res) => {
       setItems(res.data);
     });
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await axios.post("https://wishlist-tracker-backend.onrender.com/api/items", form);
+    const res = await axios.post("https://wishlist-backend-wlvx.onrender.com/api/items", form);
     setItems([...items, res.data]);
     setForm({ url: "", category: "Casa" });
   };
